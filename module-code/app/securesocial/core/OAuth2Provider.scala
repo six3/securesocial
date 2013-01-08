@@ -118,8 +118,9 @@
 
         case None =>
 
+        
         request.queryString.get(OAuth2Constants.AccessToken).flatMap(_.headOption) match {
-          case Some(token) =>
+          case Some(accessToken) =>
       //it's an iOS app
       val user = for (
           // check if the state we sent is equal to the one we're receiving now before continuing the flow.
@@ -130,7 +131,7 @@
           ) yield {
         val expires: String = request.queryString.get(OAuth2Constants.ExpiresIn).flatMap( _.headOption).get
         val oauth2Info = Some(
-          OAuth2Info(token, request.queryString.get(OAuth2Constants.TokenType).flatMap(_.headOption), Some(expires.toInt), request.queryString.get(OAuth2Constants.RefreshToken).flatMap(_.headOption))
+          OAuth2Info(accessToken, request.queryString.get(OAuth2Constants.TokenType).flatMap(_.headOption), Some(expires.toInt), request.queryString.get(OAuth2Constants.RefreshToken).flatMap(_.headOption))
           )
         SocialUser(UserId("", id), "", "", "", None, None, authMethod, oAuth2Info = oauth2Info)
       }
