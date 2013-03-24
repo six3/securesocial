@@ -24,9 +24,10 @@ import play.Logger
  *
  */
 object RoutesHelper {
+
   // ProviderController
-  val pc = Class.forName("securesocial.controllers.ReverseProviderController")
-  val providerControllerMethods = pc.newInstance().asInstanceOf[{
+  lazy val pc = Class.forName("securesocial.controllers.ReverseProviderController")
+  lazy val providerControllerMethods = pc.newInstance().asInstanceOf[{
     def authenticateByPost(p: String): Call
     def authenticate(p: String): Call
     def notAuthorized: Call
@@ -37,8 +38,8 @@ object RoutesHelper {
   def notAuthorized: Call = providerControllerMethods.notAuthorized
 
   // LoginPage
-  val lp = Class.forName("securesocial.controllers.ReverseLoginPage")
-  val loginPageMethods = lp.newInstance().asInstanceOf[{
+  lazy val lp = Class.forName("securesocial.controllers.ReverseLoginPage")
+  lazy val loginPageMethods = lp.newInstance().asInstanceOf[{
     def logout(): Call
     def login(): Call
   }]
@@ -48,8 +49,8 @@ object RoutesHelper {
 
 
   ///
-  val rr = Class.forName("securesocial.controllers.ReverseRegistration")
-  val registrationMethods = rr.newInstance().asInstanceOf[{
+  lazy val rr = Class.forName("securesocial.controllers.ReverseRegistration")
+  lazy val registrationMethods = rr.newInstance().asInstanceOf[{
     def handleStartResetPassword(): Call
     def handleStartSignUp(): Call
     def handleSignUp(token:String): Call
@@ -70,8 +71,8 @@ object RoutesHelper {
   def handleResetPassword(token:String) = registrationMethods.handleResetPassword(token)
 
   ////
-  var passChange = Class.forName("securesocial.controllers.ReversePasswordChange")
-  val passwordChangeMethods = passChange.newInstance().asInstanceOf[{
+  lazy val passChange = Class.forName("securesocial.controllers.ReversePasswordChange")
+  lazy val passwordChangeMethods = passChange.newInstance().asInstanceOf[{
     def page(): Call
     def handlePasswordChange(): Call
   }]
@@ -79,7 +80,7 @@ object RoutesHelper {
   def changePasswordPage() = passwordChangeMethods.page()
   def handlePasswordChange() = passwordChangeMethods.handlePasswordChange()
 
-  val assets = {
+  lazy val assets = {
     val conf = Play.current.configuration
     val clazz = conf.getString("securesocial.assetsController").getOrElse("controllers.ReverseAssets")
     if ( Logger.isDebugEnabled ) {
@@ -88,9 +89,69 @@ object RoutesHelper {
     Class.forName(clazz)
   }
 
-  val assetsControllerMethods = assets.newInstance().asInstanceOf[{
+  lazy val assetsControllerMethods = assets.newInstance().asInstanceOf[{
     def at(file: String): Call
   }]
 
   def at(file: String) = assetsControllerMethods.at(file)
+
+
+  val defaultBootstrapCssPath = "securesocial/bootstrap/css/bootstrap.min.css"
+  /**
+   * Loads the Bootstrap Css to use from configuration, using a default one if not provided
+   * @return the path to Bootstrap css file to use
+   */
+  val bootstrapCssPath = {
+    val conf = Play.current.configuration
+    val bsPath = conf.getString("securesocial.bootstrapCssPath").getOrElse(defaultBootstrapCssPath)
+    if ( Logger.isDebugEnabled ) {
+      Logger.debug("[securesocial] bootstrap path = %s".format(bsPath))
+    }
+    at(bsPath)
+  }
+
+  val defaultFaviconPath = "securesocial/images/favicon.png"
+  /**
+   * Loads the Favicon to use from configuration, using a default one if not provided
+   * @return the path to Favicon file to use
+   */
+  val faviconPath = {
+    val conf = Play.current.configuration
+    val favPath = conf.getString("securesocial.faviconPath").getOrElse(defaultFaviconPath)
+    if ( Logger.isDebugEnabled ) {
+      Logger.debug("[securesocial] favicon path = %s".format(favPath))
+    }
+    at(favPath)
+  }
+
+  val defaultJqueryPath = "securesocial/javascripts/jquery-1.7.1.min.js"
+  /**
+   * Loads the Jquery file to use from configuration, using a default one if not provided
+   * @return the path to Jquery file to use
+   */
+  val jqueryPath = {
+    val conf = Play.current.configuration
+    val jqueryPath = conf.getString("securesocial.jqueryPath").getOrElse(defaultJqueryPath)
+    if ( Logger.isDebugEnabled ) {
+      Logger.debug("[securesocial] Jquery path = %s".format(jqueryPath))
+    }
+    at(jqueryPath)
+  }
+
+  /**
+   * Loads the Custom Css file to use from configuration. If there is none define, none will be used
+   * @return Option containing a custom css file or None
+   */
+  val customCssPath: Option[Call] = {
+    val conf = Play.current.configuration
+    val customPath = conf.getString("securesocial.customCssPath") match {
+      case Some(path) => Some(at(path))
+      case _ => None
+    }
+    if ( Logger.isDebugEnabled ) {
+      Logger.debug("[securesocial] custom css path = %s".format(customPath))
+    }
+    customPath
+  }
+
 }

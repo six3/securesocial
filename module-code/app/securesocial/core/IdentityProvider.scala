@@ -75,8 +75,8 @@ abstract class IdentityProvider(application: Application) extends Plugin with Re
       u =>
       {
         val user = fillProfile(u)
-        UserService.save(user)
-        Right(user)
+        val saved = UserService.save(user)
+        Right(saved)
       }
     )
   }
@@ -129,17 +129,25 @@ abstract class IdentityProvider(application: Application) extends Plugin with Re
   def fillProfile(user: SocialUser):SocialUser
 
   protected def throwMissingPropertiesException() {
-    val msg = "Missing properties for provider '%s'. Verify your configuration file is properly set.".format(id)
+    val msg = "[securesocial] Missing properties for provider '%s'. Verify your configuration file is properly set.".format(id)
     Logger.error(msg)
     throw new RuntimeException(msg)
   }
 }
 
 object IdentityProvider {
-  val SessionId = "securesocial.id"
+  val SessionId = "sid"
 
   val sslEnabled: Boolean = {
     import Play.current
-    current.configuration.getBoolean("securesocial.ssl").getOrElse(false)
+    val result = current.configuration.getBoolean("securesocial.ssl").getOrElse(false)
+    if ( !result && Play.isProd ) {
+      Logger.warn(
+        "[securesocial] IMPORTANT: Play is running in production mode but you did not turn SSL on for SecureSocial." +
+          "Not using SSL can make it really easy for an attacker to steal your users credentials and/or the " +
+          "authenticator cookie and gain access to the system."
+      )
+    }
+    result
   }
 }

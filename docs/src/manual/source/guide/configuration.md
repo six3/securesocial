@@ -30,13 +30,31 @@ These settings go in the `smtp` section of the `securesocial.conf` file:
 
 - `onLogoutGoTo`: The page where the user is redirected to after logging out.
 
-- `ssl`: You can enable SSL for OAuth callbacks and for the login, signup and reset password actions of the `UsernamePasswordProvider` (you'll want this in production mode).
-
-- `sessionTimeOut`: Specifies the session time out in minutes. Users get logged out automatically after being inactive for the minutes specified in this property.  The default is 60 minutes.
+- `ssl`: You can enable SSL for OAuth callbacks, the login, signup and reset password actions of the `UsernamePasswordProvider` and for the cookie used to trace users (you'll want this in production mode).
 
 - `assetsController`: This setting is optional.  It is only needed if you are not using the default Assets controller provided by Play.  The value must be the full qualified class name of your controller prepended by the word Reverse.
 
-All these settings go inside a `securesocial` section as shown below:
+## Authenticator Cookie
+
+SecureSocial uses a cookie to trace authenticated users.  A `cookie` section can be added to customize it with the following properties:
+
+- `name`: The cookie name (defaults to 'id').
+
+- `path`: The path for which the cookie should be sent by the browser (defaults to /)
+          
+- `domain`: The domain for which the cookie should be sent (it is left empty by default)
+
+- `httpOnly`: If set to true, the cookie is not readable by a client side script (defaults to true).
+
+- `idleTimeoutInMinutes`: The amount of time the session id will remain valid since the last request (defaults to 30).
+
+- `absoluteTimeOutInMinutes`: The amount of time the session id will be valid since the user authenticated. After this the user will need to re-authenticate (defaults to 720 minutes - 12 hours)
+
+- `makeTransient`: Makes the cookie transient (defaults to true). Transient cookie are recommended because the cookie dissapears when the browser is closed.  If set to false, the cookie will survive browser restarts and the user won't need to login again (as long as the idle and absolute timeouts have not been passed).
+
+## Sample configuration
+
+All the settings go inside a `securesocial` section as shown below:
 
     :::bash    
 	securesocial {
@@ -52,20 +70,25 @@ All these settings go inside a `securesocial` section as shown below:
 		onLogoutGoTo=/login
 
 		#
-		# Enable SSL for oauth callback urls and login/signup/password recovery pages
+		# Enable SSL 
 		#
 		ssl=false	
-
-		#
-		# Session Timeout In Minutes
-		#
-		sessionTimeOut=60
 
 		#
 		# The controller class for assets. This is optional, only required
 		# when you use a custom class for Assets.
 		#
-		assetsController=controllers.ReverseMyCustomAssetsController	       
+		assetsController=controllers.ReverseMyCustomAssetsController
+
+		 cookie {
+                #name=id
+                #path=/
+                #domain=some_domain
+                #httpOnly=true
+                #idleTimeoutInMinutes=30
+                #absoluteTimeOutInMinutes=720
+        }
+	       
 	}
 
 
@@ -82,6 +105,8 @@ The following properties can be configured:
 - `sendWelcomeEmail`: if the to `true` a welcome email will be sent to users after sign up.
 
 - `enableGravatarSupport`: if set to `true` Gravatar will be used to retrieve a profile image for the user.  If set to `false` it will be left empty.
+
+- `signupSkipLogin`: if set to `true`, the user will be automatically signed in when they complete sign up. If set to `false` the user will have to sign in after registering. Username/password only.
 
 - `tokenDuration`: Every time a user signs up or attempts a password reset SecureSocial will generate a token that identifies that request.  Each token has an expiration date and this property is used to compute it. This value is expressed in **minutes** and is set to 60 by default.
 
@@ -100,6 +125,7 @@ For example:
 		withUserNameSupport=false
 		sendWelcomeEmail=true
 		enableGravatarSupport=true
+		signupSkipLogin=true
 		tokenDuration=60
 		tokenDeleteInterval=5
 		minimumPasswordLength=8
@@ -150,6 +176,35 @@ A configuration would like like:
 	github {
 		authorizationUrl="https://github.com/login/oauth/authorize"
 		accessTokenUrl="https://github.com/login/oauth/access_token"
+		clientId=your_client_id
+		clientSecret=your_client_secret
+	}
+
+	foursquare {
+    	authorizationUrl="https://foursquare.com/oauth2/authenticate"
+        accessTokenUrl="https://foursquare.com/oauth2/access_token"
+		clientId=your_client_id
+		clientSecret=your_client_secret
+	}
+
+    xing {
+     	requestTokenUrl="https://api.xing.com/v1/request_token"
+		accessTokenUrl="https://api.xing.com/v1/access_token"
+        authorizationUrl="https://api.xing.com/v1/authorize"
+		consumerKey=your_consumer_key
+		consumerSecret=your_consumer_secret
+    }
+
+    instagram {
+        authorizationUrl="https://api.instagram.com/oauth/authorize"
+      	accessTokenUrl="https://api.instagram.com/oauth/access_token"
+		clientId=your_client_id
+		clientSecret=your_client_secret
+    }
+
+	vk {
+	    authorizationUrl="http://oauth.vk.com/authorize"
+	    accessTokenUrl="https://oauth.vk.com/access_token"
 		clientId=your_client_id
 		clientSecret=your_client_secret
 	}

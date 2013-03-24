@@ -185,7 +185,7 @@ object Registration extends Controller {
       }
       case _ => {
         val to = if ( isSignUp ) RoutesHelper.startSignUp() else RoutesHelper.startResetPassword()
-        Redirect(to).flashing(Error -> InvalidLink)
+        Redirect(to).flashing(Error -> Messages(InvalidLink))
       }
     }
   }
@@ -215,12 +215,17 @@ object Registration extends Controller {
             AuthenticationMethod.UserPassword,
             passwordInfo = Some(Registry.hashers.currentHasher.hash(info.password))
           )
-          UserService.save(user)
+          val saved = UserService.save(user)
           UserService.deleteToken(t.uuid)
           if ( UsernamePasswordProvider.sendWelcomeEmail ) {
-            Mailer.sendWelcomeEmail(user)
+            Mailer.sendWelcomeEmail(saved)
           }
-          Redirect(RoutesHelper.login()).flashing(Success -> Messages(SignUpDone))
+          val eventSession = Events.fire(new SignUpEvent(user)).getOrElse(session)
+          if ( UsernamePasswordProvider.signupSkipLogin ) {
+            ProviderController.completeAuthentication(user, eventSession).flashing(Success -> Messages(SignUpDone))
+          } else {
+            Redirect(RoutesHelper.login()).flashing(Success -> Messages(SignUpDone)).withSession(eventSession)
+          }
         }
       )
     })
@@ -262,21 +267,22 @@ object Registration extends Controller {
         BadRequest(use[TemplatesPlugin].getResetPasswordPage(request, errors, token))
       },
       p => {
-        val toFlash = UserService.findByEmailAndProvider(t.email, UsernamePasswordProvider.UsernamePassword) match {
+        val (toFlash, eventSession) = UserService.findByEmailAndProvider(t.email, UsernamePasswordProvider.UsernamePassword) match {
           case Some(user) => {
             val hashed = Registry.hashers.currentHasher.hash(p._1)
-            val updated = SocialUser(user).copy( passwordInfo = Some(hashed) )
-            UserService.save(updated)
+            val updated = UserService.save( SocialUser(user).copy(passwordInfo = Some(hashed)) )
             UserService.deleteToken(token)
             Mailer.sendPasswordChangedNotice(updated)
-            (Success -> Messages(PasswordUpdated))
+            val eventSession = Events.fire(new PasswordResetEvent(user))
+            ( (Success -> Messages(PasswordUpdated)), eventSession)
           }
           case _ => {
             Logger.error("[securesocial] could not find user with email %s during password reset".format(t.email))
-            (Error -> Messages(ErrorUpdatingPassword))
+            ( (Error -> Messages(ErrorUpdatingPassword)), None)
           }
         }
-        Redirect(RoutesHelper.login()).flashing(toFlash)
+        val result = Redirect(RoutesHelper.login()).flashing(toFlash)
+        eventSession.map( result.withSession(_) ).getOrElse(result)
       })
     })
   }
