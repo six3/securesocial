@@ -207,7 +207,7 @@ object Authenticator {
     val id = use[IdGenerator].generate
     val now = DateTime.now()
     val expirationDate = now.plusMinutes(absoluteTimeout)
-    val authenticator = Authenticator(id, user.id, now, now, expirationDate)
+    val authenticator = Authenticator(id, user.userId, now, now, expirationDate)
     val r = use[AuthenticatorStore].save(authenticator)
     val result = r.fold( e => Left(e), _ => Right(authenticator) )
     result

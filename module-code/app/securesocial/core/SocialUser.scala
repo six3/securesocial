@@ -30,7 +30,7 @@ package securesocial.core
  *
  */
 trait Identity {
-  def id: UserId
+  def userId: UserId
   def firstName: String
   def lastName: String
   def fullName: String
@@ -45,7 +45,7 @@ trait Identity {
 /**
  * An implementation of Identity.  Used by SecureSocial to gather user information when users sign up and/or sign in.
  */
-case class SocialUser(id: UserId, firstName: String, lastName: String, fullName: String, email: Option[String],
+case class SocialUser(userId: UserId, firstName: String, lastName: String, fullName: String, email: Option[String],
                       avatarUrl: Option[String], authMethod: AuthenticationMethod,
                       oAuth1Info: Option[OAuth1Info] = None,
                       oAuth2Info: Option[OAuth2Info] = None,
@@ -54,7 +54,7 @@ case class SocialUser(id: UserId, firstName: String, lastName: String, fullName:
 object SocialUser {
   def apply(i: Identity): SocialUser = {
     SocialUser(
-      i.id, i.firstName, i.lastName, i.fullName,
+      i.userId, i.firstName, i.lastName, i.fullName,
       i.email, i.avatarUrl, i.authMethod, i.oAuth1Info,
       i.oAuth2Info, i.passwordInfo
     )

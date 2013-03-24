@@ -77,7 +77,7 @@ class GitHubProvider(application: Application) extends OAuth2Provider(applicatio
             val avatarUrl = (me \ AvatarUrl).asOpt[String]
             val email = (me \ Email).asOpt[String].filter( !_.isEmpty )
             user.copy(
-              id = UserId(userId.toString, id),
+              userId = UserId(userId.toString, id),
               fullName = displayName,
               avatarUrl = avatarUrl,
               email = email

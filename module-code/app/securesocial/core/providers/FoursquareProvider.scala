@@ -80,7 +80,7 @@ class FoursquareProvider(application: Application) extends OAuth2Provider(applic
               val email = (me \ Response \ User \ Contact \ Email).asOpt[String].filter( !_.isEmpty )
 
               user.copy(
-                id = UserId(userId.get , id),
+                userId = UserId(userId.get , id),
                 lastName = lastName,
                 firstName = firstName,
                 fullName = firstName + " " + lastName,

@@ -72,7 +72,7 @@ class InstagramProvider(application: Application) extends OAuth2Provider(applica
               val avatarUrl = ( me \ Data \ ProfilePic ).asOpt[String]
 
               user.copy(
-                id = UserId(userId , id),
+                userId = UserId(userId , id),
                 fullName = fullName,
                 avatarUrl = avatarUrl
               )

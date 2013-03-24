@@ -238,7 +238,7 @@ object SecureSocial {
    * @return an optional service info
    */
   def serviceInfoFor(user: Identity): Option[ServiceInfo] = {
-    Registry.providers.get(user.id.providerId) match {
+    Registry.providers.get(user.userId.providerId) match {
       case Some(p: OAuth1Provider) if p.authMethod == AuthenticationMethod.OAuth1 => Some(p.serviceInfo)
       case _ => None
     }
