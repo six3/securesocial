@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 2.0.12  - 2013-02-25
 		- clean securesocial values after login from the session
 		- renamed keys used in session
@@ -8,6 +9,30 @@
 		- Chanded Build.scala files to use the Typesafe community repository.
 		- Renamed ResetPasswordEvent to PasswordResetEvent.
 		- Made vals in RoutesHelper lazy.
+=======
+master
+		- Use referer if originalUrl is not available when the login/signup page is hit (thanks @magro)
+		- Fixed: Facebook login error when using the publish_stream scope (thanks @fedefrappi)
+		- Fixed: make minimum default password length to 8 (thanks @wsargent)
+		- Fixed: ClassCastException on application reload (dev mode) when using Events (thanks @magro)
+		- Added: Serve the login page using SSL (thanks @magro)
+		- Fixed: Do not prevent login on missing google profile info (thanks @chazmcgarvey)
+		- Fixed: NoSuchElementException in FoursquareProvider (thanks @thesmith)
+		- Moved RequestWithUser outside the SecureSocial controller
+		- Allow overriding Registration step redirect targets. (thanks @magro)
+		- Added the email to the flash messages in Registration.handleStartSignUp (thanks @magro)
+		- Added support for plain text, html and multipart emails in TemplatesPlugin (thanks @magro)
+		- clean securesocial values after login from the session
+                - renamed keys used in session
+		- Added a makeTransient property for the authenticator cookie.
+		- Fixed: absolute timeout was not being picked up from the conf file
+		- Fixed wrong logout implementation
+		- Made SecureSocial compatible with Play 2.1 [master branch, 2.0.x branch is for Play 2.0 versions now].
+2.0.11  - 2013-02-21
+                - Chanded Build.scala files to use the Typesafe community repository.
+		- Renamed ResetPasswordEvent to PasswordResetEvent.
+		- Made vals in RoutesHelper lazy
+>>>>>>> 121d022ebfce7f059788d09fca6bd9d9e666c9a1
 		- Added password change, password reset and sign up events
 		- Added IdGenerator and AuthenticatorStore plugins with their default implementations for the new authenticator cookie.
 		- Introduced an authenticator cookie to track users. The Play session is not used anymore.

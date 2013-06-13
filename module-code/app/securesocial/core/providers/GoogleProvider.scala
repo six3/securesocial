@@ -44,10 +44,8 @@ class GoogleProvider(application: Application) extends OAuth2Provider(applicatio
     val accessToken = user.oAuth2Info.get.accessToken
     val promise = WS.url(UserInfoApi + accessToken).get()
 
-    promise.await(10000).fold( error => {
-      Logger.error( "[securesocial] error retrieving profile information", error)
-      throw new AuthenticationException()
-    }, response => {
+    try {
+      val response = awaitResult(promise)
       val me = response.json
       (me \ Error).asOpt[JsObject] match {
         case Some(error) =>
@@ -58,21 +56,26 @@ class GoogleProvider(application: Application) extends OAuth2Provider(applicatio
           throw new AuthenticationException()
         case _ =>
           val userId = (me \ Id).as[String]
-          val firstName = (me \ GivenName).as[String]
-          val lastName = (me \ FamilyName).as[String]
-          val fullName = (me \ Name).as[String]
+          val firstName = (me \ GivenName).asOpt[String]
+          val lastName = (me \ FamilyName).asOpt[String]
+          val fullName = (me \ Name).asOpt[String]
           val avatarUrl = ( me \ Picture).asOpt[String]
-          val email = ( me \ Email).as[String]
+          val email = ( me \ Email).asOpt[String]
           user.copy(
             userId = UserId(userId, id),
-            firstName = firstName,
-            lastName = lastName,
-            fullName = fullName,
+            firstName = firstName.getOrElse(""),
+            lastName = lastName.getOrElse(""),
+            fullName = fullName.getOrElse(""),
             avatarUrl = avatarUrl,
-            email = Some(email)
+            email = email
           )
       }
-    })
+    } catch {
+      case e: Exception => {
+        Logger.error( "[securesocial] error retrieving profile information from Google", e)
+        throw new AuthenticationException()
+      }
+    }
   }
 }
 

@@ -16,7 +16,7 @@
  */
 package securesocial.controllers
 
-import play.api.mvc.{Action, Controller}
+import play.api.mvc.{Session, DiscardingCookie, Action, Controller}
 import securesocial.core._
 import play.api.Play
 import Play.current
@@ -49,8 +49,7 @@ object LoginPage extends Controller
       Redirect( to )
     } else {
       import com.typesafe.plugin._
-      import Play.current
-      Ok(use[TemplatesPlugin].getLoginPage(request, UsernamePasswordProvider.loginForm))
+      SecureSocial.withRefererAsOriginalUrl(Ok(use[TemplatesPlugin].getLoginPage(request, UsernamePasswordProvider.loginForm)))
     }
   }
 
@@ -69,7 +68,7 @@ object LoginPage extends Controller
       Authenticator.delete(authenticator.id)
       user
     }
-    val result = Redirect(to).discardingCookies(Authenticator.cookieName)
+    val result = Redirect(to).discardingCookies(Authenticator.discardingCookie)
     user match {
       case Some(u) => result.withSession( Events.fire(new LogoutEvent(u)).getOrElse(session) )
       case None => result

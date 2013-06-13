@@ -23,7 +23,7 @@ import play.api.{Play, Application, Plugin}
 import com.typesafe.plugin._
 import Play.current
 import play.api.cache.Cache
-import play.api.mvc.Cookie
+import play.api.mvc.{DiscardingCookie, Cookie}
 
 /**
  * An authenticator tracks an authenticated user.
@@ -48,7 +48,7 @@ case class Authenticator(id: String, userId: UserId, creationDate: DateTime,
     Cookie(
       cookieName,
       id,
-      if ( makeTransient ) Transient else absoluteTimeoutInSeconds,
+      if ( makeTransient ) Transient else Some(absoluteTimeoutInSeconds),
       cookiePath,
       cookieDomain,
       secure = cookieSecure,
@@ -180,7 +180,7 @@ object Authenticator {
   val DefaultCookieName = "id"
   val DefaultCookiePath = "/"
   val DefaultCookieHttpOnly = true
-  val Transient = -1
+  val Transient = None
   val DefaultIdleTimeout = 30
   val DefaultAbsoluteTimeout = 12 * 60
 
@@ -196,6 +196,10 @@ object Authenticator {
   lazy val absoluteTimeout = Play.application.configuration.getInt(AbsoluteTimeoutKey).getOrElse(DefaultAbsoluteTimeout)
   lazy val absoluteTimeoutInSeconds = absoluteTimeout * 60
   lazy val makeTransient = Play.application.configuration.getBoolean(TransientKey).getOrElse(true)
+
+  val discardingCookie: DiscardingCookie = {
+    DiscardingCookie(cookieName, cookiePath, cookieDomain, cookieSecure)
+  }
 
   /**
    * Creates a new authenticator id for the specified user

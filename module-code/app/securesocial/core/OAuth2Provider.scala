@@ -16,14 +16,15 @@
  */
  package securesocial.core
 
- import _root_.java.net.URLEncoder
- import _root_.java.util.UUID
- import play.api.{Logger, Play, Application}
- import play.api.cache.Cache
- import Play.current
- import play.api.mvc.{Results, Result, Request}
- import providers.utils.RoutesHelper
- import play.api.libs.ws.{Response, WS}
+import _root_.java.net.URLEncoder
+import _root_.java.util.UUID
+import play.api.{Logger, Play, Application}
+import play.api.cache.Cache
+import Play.current
+import play.api.mvc.{Results, Result, Request}
+import providers.utils.RoutesHelper
+import play.api.libs.ws.{Response, WS}
+import scala.concurrent.TimeoutException
 
 /**
  * Base class for all OAuth2 providers
@@ -49,23 +50,25 @@
       result.get
     }
 
-    private def getAccessToken[A](code: String)(implicit request: Request[A]):OAuth2Info = {
-      val params = Map(
-        OAuth2Constants.ClientId -> Seq(settings.clientId),
-        OAuth2Constants.ClientSecret -> Seq(settings.clientSecret),
-        OAuth2Constants.GrantType -> Seq(OAuth2Constants.AuthorizationCode),
-        OAuth2Constants.Code -> Seq(code),
-        OAuth2Constants.RedirectUri -> Seq(RoutesHelper.authenticate(id).absoluteURL(IdentityProvider.sslEnabled))
-        )
-      WS.url(settings.accessTokenUrl).post(params).await(10000).fold( onError =>
-      {
-        Logger.error("[securesocial] timed out trying to get an access token for provider " + id)
-        throw new AuthenticationException()
-        },
-        response =>  buildInfo(response)
-        )
-    }
 
+  private def getAccessToken[A](code: String)(implicit request: Request[A]):OAuth2Info = {
+    val params = Map(
+      OAuth2Constants.ClientId -> Seq(settings.clientId),
+      OAuth2Constants.ClientSecret -> Seq(settings.clientSecret),
+      OAuth2Constants.GrantType -> Seq(OAuth2Constants.AuthorizationCode),
+      OAuth2Constants.Code -> Seq(code),
+      OAuth2Constants.RedirectUri -> Seq(RoutesHelper.authenticate(id).absoluteURL(IdentityProvider.sslEnabled))
+    )
+    val call = WS.url(settings.accessTokenUrl).post(params)
+    try {
+      buildInfo(awaitResult(call))
+    } catch {
+      case e: Exception => {
+        Logger.error("[securesocial] error trying to get an access token for provider %s".format(id), e)
+        throw new AuthenticationException()
+      }
+    }
+  }
     protected def buildInfo(response: Response): OAuth2Info = {
       val json = response.json
       if ( Logger.isDebugEnabled ) {
@@ -118,7 +121,7 @@
 
         case None =>
 
-        
+
         request.queryString.get(OAuth2Constants.AccessToken).flatMap(_.headOption) match {
           case Some(accessToken) =>
       //it's an iOS app
