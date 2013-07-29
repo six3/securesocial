@@ -37,5 +37,6 @@ object AuthenticationMethod {
   val OAuth2 = AuthenticationMethod("oauth2")
   val OpenId = AuthenticationMethod("openId")
   val UserPassword = AuthenticationMethod("userPassword")
+  val PhoneNumber = AuthenticationMethod("phoneNumber")
 }
 

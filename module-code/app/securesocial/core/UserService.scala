@@ -17,7 +17,7 @@
 package securesocial.core
 
 import play.api.{Logger, Plugin, Application}
-import providers.{UsernamePasswordProvider, Token}
+import providers.{PhoneNumberProvider, UsernamePasswordProvider, Token}
 import play.api.libs.concurrent.Akka
 import akka.actor.Cancellable
 
