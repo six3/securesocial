@@ -31,7 +31,7 @@ import org.joda.time.DateTime
  * A phone number provider
  */
 class PhoneNumberProvider(application: Application) extends IdentityProvider(application) {
-
+  
   override def id = PhoneNumberProvider.PhoneNumber
 
   def authMethod = AuthenticationMethod.PhoneNumber
@@ -75,7 +75,7 @@ object PhoneNumberProvider {
   val loginForm = Form(
     tuple(
       "number" -> nonEmptyText,
-      "code" -> nonEmptyText
+      "password" -> nonEmptyText
     )
   )
 }
