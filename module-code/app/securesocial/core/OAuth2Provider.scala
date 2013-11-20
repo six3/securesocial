@@ -29,7 +29,8 @@ import scala.concurrent.TimeoutException
 /**
  * Base class for all OAuth2 providers
  */
- abstract class OAuth2Provider(application: Application) extends IdentityProvider(application) {
+
+abstract class OAuth2Provider(application: Application, jsonResponse: Boolean = true) extends IdentityProvider(application) {
   val settings = createSettings()
 
   def authMethod = AuthenticationMethod.OAuth2
@@ -106,8 +107,8 @@ import scala.concurrent.TimeoutException
           val accessToken = getAccessToken(code)
           val oauth2Info = Some(
             OAuth2Info(accessToken.accessToken, accessToken.tokenType, accessToken.expiresIn, accessToken.refreshToken)
-            )
-          SocialUser(UserId("", id), "", "", "", None, None, authMethod, oAuth2Info = oauth2Info)
+          )
+          SocialUser(IdentityId("", id), "", "", "", None, None, authMethod, oAuth2Info = oauth2Info)
         }
         if ( Logger.isDebugEnabled ) {
           Logger.debug("[securesocial] user = " + user)

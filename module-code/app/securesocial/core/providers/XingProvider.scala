@@ -48,13 +48,14 @@ class XingProvider(application: Application) extends OAuth1Provider(application)
       val firstName = (me \\ FirstName).head.as[String]
       val profileImage = (me \\ Large ).head.as[String]
       val email = (me  \\ ActiveEmail).head.as[String]
-      user.copy(userId = UserId(userId, id),
+      user.copy(identityId = IdentityId(userId, id),
         fullName = displayName,
         firstName = firstName,
         lastName = lastName,
         avatarUrl = Some(profileImage),
         email = Some(email)
       )
+
     } catch {
       case e: Exception => {
         Logger.error("[securesocial] error retrieving profile information from Xing", e)

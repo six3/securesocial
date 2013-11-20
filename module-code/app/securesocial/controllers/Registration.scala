@@ -31,7 +31,7 @@ import org.joda.time.DateTime
 import play.api.i18n.Messages
 import securesocial.core.providers.Token
 import scala.Some
-import securesocial.core.UserId
+import securesocial.core.IdentityId
 
 
 /**
@@ -62,7 +62,7 @@ object Registration extends Controller {
   val TokenDurationKey = "securesocial.userpass.tokenDuration"
   val DefaultDuration = 60
   val TokenDuration = Play.current.configuration.getInt(TokenDurationKey).getOrElse(DefaultDuration)
-  
+
   /** The redirect target of the handleStartSignUp action. */
   val onHandleStartSignUpGoTo = stringConfig("securesocial.onStartSignUpGoTo", RoutesHelper.login().url)
   /** The redirect target of the handleSignUp action. */
@@ -71,7 +71,7 @@ object Registration extends Controller {
   val onHandleStartResetPasswordGoTo = stringConfig("securesocial.onStartResetPasswordGoTo", RoutesHelper.login().url)
   /** The redirect target of the handleResetPassword action. */
   val onHandleResetPasswordGoTo = stringConfig("securesocial.onResetPasswordGoTo", RoutesHelper.login().url)
-  
+
   private def stringConfig(key: String, default: => String) = {
     Play.current.configuration.getString(key).getOrElse(default)
   }
@@ -81,7 +81,7 @@ object Registration extends Controller {
   val formWithUsername = Form[RegistrationInfo](
     mapping(
       UserName -> nonEmptyText.verifying( Messages(UserNameAlreadyTaken), userName => {
-          UserService.find(UserId(userName,providerId)).isEmpty
+          UserService.find(IdentityId(userName,providerId)).isEmpty
       }),
       FirstName -> nonEmptyText,
       LastName -> nonEmptyText,
@@ -139,7 +139,11 @@ object Registration extends Controller {
    * Starts the sign up process
    */
   def startSignUp = Action { implicit request =>
-    SecureSocial.withRefererAsOriginalUrl(Ok(use[TemplatesPlugin].getStartSignUpPage(request, startForm)))
+    if ( SecureSocial.enableRefererAsOriginalUrl ) {
+      SecureSocial.withRefererAsOriginalUrl(Ok(use[TemplatesPlugin].getStartSignUpPage(request, startForm)))
+    } else {
+      Ok(use[TemplatesPlugin].getStartSignUpPage(request, startForm))
+    }
   }
 
   private def createToken(email: String, isSignUp: Boolean): (String, Token) = {
@@ -217,9 +221,9 @@ object Registration extends Controller {
         },
         info => {
           val id = if ( UsernamePasswordProvider.withUserNameSupport ) info.userName.get else t.email
-          val userId = UserId(id, providerId)
+          val identityId = IdentityId(id, providerId)
           val user = SocialUser(
-            userId,
+            identityId,
             info.firstName,
             info.lastName,
             "%s %s".format(info.firstName, info.lastName),

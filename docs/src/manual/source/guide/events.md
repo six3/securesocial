@@ -13,7 +13,7 @@ SecureSocial fires the following events that can be listened by your application
 
 ## Event Listener
 
-To start tracking events create a new class that extends `EventListener` and implement the `onEvent` method. 
+To start tracking events create a new class that extends `EventListener` and implement the `onEvent` method.
 
 	:::scala
 	class MyEventListener(app: Application) extends EventListener {
@@ -32,13 +32,17 @@ To start tracking events create a new class that extends `EventListener` and imp
   		}
 	}
 
-You modify the session after handling the event by using the `session` parameter and returning a new instance with the required changes.  Returning `None` means that nothing needs to be changed as in the example above.  
+You modify the session after handling the event by using the `session` parameter and returning a new instance with the required changes.  Returning `None` means that nothing needs to be changed as in the example above.
 
 If you wanted to change the session you would replace the `None` in the sample above with something like:
 
 	:::scala
-	Some(session + ("my_key" -> "my_value"))	    
-		    
+	Some(session + ("my_key" -> "my_value"))
+
+Finally, you need to register your event listener in `play.plugins`:
+
+	10006:package.to.MyEventListener
+
 ### Java
 
-The Event API is currently available in Scala only.  
+The Event API is currently available in Scala only.

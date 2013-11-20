@@ -29,12 +29,12 @@ import play.api.mvc.{DiscardingCookie, Cookie}
  * An authenticator tracks an authenticated user.
  *
  * @param id The authenticator id
- * @param userId The user id
+ * @param identityId The user id
  * @param creationDate The creation timestamp
  * @param lastUsed The last used timestamp
  * @param expirationDate The expiration time
  */
-case class Authenticator(id: String, userId: UserId, creationDate: DateTime,
+case class Authenticator(id: String, identityId: IdentityId, creationDate: DateTime,
                          lastUsed: DateTime, expirationDate: DateTime)
 {
 
@@ -100,7 +100,9 @@ class DefaultIdGenerator(app: Application) extends IdGenerator(app) {
   //todo: this needs improvement, several threads will wait for the synchronized block in SecureRandom.
   // I will probably need a pool of SecureRandom instances.
   val random = new SecureRandom()
-  val IdSizeInBytes = 128
+  val DefaultSizeInBytes = 128
+  val IdLengthKey = "securesocial.idLengthInBytes"
+  val IdSizeInBytes = app.configuration.getInt(IdLengthKey).getOrElse(DefaultSizeInBytes)
 
   /**
    * Generates a new id using SecureRandom
@@ -160,7 +162,7 @@ class DefaultAuthenticatorStore(app: Application) extends AuthenticatorStore(app
     Right(Cache.getAs[Authenticator](id))
   }
   def delete(id: String): Either[Error, Unit] = {
-    Cache.set(id, "", 1)
+    Cache.remove(id)
     Right(())
   }
 }
@@ -211,7 +213,7 @@ object Authenticator {
     val id = use[IdGenerator].generate
     val now = DateTime.now()
     val expirationDate = now.plusMinutes(absoluteTimeout)
-    val authenticator = Authenticator(id, user.userId, now, now, expirationDate)
+    val authenticator = Authenticator(id, user.identityId, now, now, expirationDate)
     val r = use[AuthenticatorStore].save(authenticator)
     val result = r.fold( e => Left(e), _ => Right(authenticator) )
     result
