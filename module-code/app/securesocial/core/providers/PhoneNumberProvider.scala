@@ -31,7 +31,7 @@ import org.joda.time.DateTime
  * A phone number provider
  */
 class PhoneNumberProvider(application: Application) extends IdentityProvider(application) {
-  
+
   override def id = PhoneNumberProvider.PhoneNumber
 
   def authMethod = AuthenticationMethod.PhoneNumber
@@ -43,7 +43,7 @@ class PhoneNumberProvider(application: Application) extends IdentityProvider(app
     form.fold(
       errors => Left(badRequest(errors, request)),
       credentials => {
-        val userId = UserId(credentials._1, id)
+        val userId = IdentityId(credentials._1, id)
         val result = for (
           user <- UserService.find(userId) ;
           pinfo <- user.passwordInfo ;

@@ -137,7 +137,7 @@ abstract class OAuth2Provider(application: Application, jsonResponse: Boolean = 
         val oauth2Info = Some(
           OAuth2Info(accessToken, request.queryString.get(OAuth2Constants.TokenType).flatMap(_.headOption), Some(expires.toInt), request.queryString.get(OAuth2Constants.RefreshToken).flatMap(_.headOption))
           )
-        SocialUser(UserId("", id), "", "", "", None, None, authMethod, oAuth2Info = oauth2Info)
+        SocialUser(IdentityId("", id), "", "", "", None, None, authMethod, oAuth2Info = oauth2Info)
       }
       if ( Logger.isDebugEnabled ) {
         Logger.debug("[securesocial] user = " + user)
